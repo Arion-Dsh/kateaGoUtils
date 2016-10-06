@@ -3,8 +3,6 @@ package mongo
 import (
 	"testing"
 
-	"time"
-
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -15,19 +13,16 @@ type user struct {
 	Model  `bson:",omitempty"`
 }
 
-func (u *user) indexKeys() []string {
+func (u *user) IndexKeys() []string {
 	return []string{"name"}
 }
 
-func (u *user) cName() string {
-	return "user"
-}
-func (u *user) dbAddr() string {
-	return "localhost"
-}
-
-func (u *user) dbName() string {
-	return "test"
+func (u *user) Mate() map[string]string {
+	return map[string]string{
+		"dbAddr": "localhost",
+		"dbName": "test",
+		"cName":  "user",
+	}
 }
 
 func TestDB(t *testing.T) {
@@ -46,5 +41,5 @@ func TestDB(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	time.Sleep(50 * time.Second)
+	// time.Sleep(50 * time.Second)
 }

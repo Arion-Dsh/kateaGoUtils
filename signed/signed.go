@@ -34,7 +34,6 @@ func Decode(t string) string {
 	stream := cipher.NewCFBDecrypter(block, iv)
 
 	stream.XORKeyStream(ciphertext, ciphertext)
-	fmt.Printf("%s", ciphertext)
 
 	return fmt.Sprintf("%s", ciphertext)
 }

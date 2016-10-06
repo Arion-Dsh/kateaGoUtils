@@ -10,7 +10,7 @@ func TestKey(t *testing.T) {
 }
 
 func TestSigned(t *testing.T) {
-	text := "1234567891234567"
+	text := "1234567"
 	e := Encode(text)
 	d := Decode(e)
 	if text != d {

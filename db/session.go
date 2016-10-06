@@ -7,10 +7,8 @@ import (
 )
 
 type model interface {
-	dbAddr() string
-	dbName() string
-	cName() string
-	indexKeys() []string
+	Mate() map[string]string
+	IndexKeys() []string
 }
 
 func index(keys []string, collection *mgo.Collection) {
@@ -31,15 +29,18 @@ func index(keys []string, collection *mgo.Collection) {
 
 // mgodb Session
 func Session(m model) *db {
-	session, err := mgo.Dial(fmt.Sprintf("mongodb://%s", m.dbAddr()))
+	mate := m.Mate()
+
+	session, err := mgo.Dial(fmt.Sprintf("mongodb://%s", mate["dbAddr"]))
+
 	defer session.Close()
 	if err != nil {
 		panic(err)
 	}
 	db := &db{
 		session: session.Copy(),
-		dbName:  m.dbName(),
-		cName:   m.cName(),
+		dbName:  mate["dbName"],
+		cName:   mate["cName"],
 	}
 	// db.collection = db.session.DB(m.dbName()).C(m.cName())
 	// index(m.indexKeys(), db.collection)
@@ -47,26 +48,37 @@ func Session(m model) *db {
 }
 
 type db struct {
-	query      *mgo.Query
-	session    *mgo.Session
-	collection *mgo.Collection
-	dbName     string
-	cName      string
+	query   *mgo.Query
+	session *mgo.Session
+	dbName  string
+	cName   string
 }
 
 func (db *db) Insert(docs ...interface{}) error {
 	defer db.session.Close()
-	err := db.session.DB(db.dbName).C(db.cName).Insert(docs...)
-	if err != nil {
-		return err
-	}
-	return nil
+	return db.session.DB(db.dbName).C(db.cName).Insert(docs...)
 }
+
 func (db *db) Remove(selector interface{}) error {
 	defer db.session.Close()
-	err := db.session.DB(db.dbName).C(db.cName).Remove(selector)
-	if err != nil {
-		return err
-	}
-	return nil
+	return db.session.DB(db.dbName).C(db.cName).Remove(selector)
+
+}
+func (db *db) Find(query interface{}) *db {
+	db.query = db.session.DB(db.dbName).C(db.cName).Find(query)
+	return db
+}
+func (db *db) FindId(id interface{}) *db {
+	db.query = db.session.DB(db.dbName).C(db.cName).FindId(id)
+	return db
+}
+
+func (db *db) One(result interface{}) error {
+	defer db.session.Close()
+	return db.query.One(result)
+}
+
+func (db *db) Count() (int, error) {
+	defer db.session.Close()
+	return db.query.Count()
 }
