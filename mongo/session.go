@@ -27,7 +27,7 @@ func index(keys []string, collection *mgo.Collection) {
 	}
 }
 
-// mgodb Session
+// Session
 func Session(m model) *db {
 	mate := m.Mate()
 
@@ -68,6 +68,7 @@ func (db *db) Find(query interface{}) *db {
 	db.query = db.session.DB(db.dbName).C(db.cName).Find(query)
 	return db
 }
+
 func (db *db) FindId(id interface{}) *db {
 	db.query = db.session.DB(db.dbName).C(db.cName).FindId(id)
 	return db
