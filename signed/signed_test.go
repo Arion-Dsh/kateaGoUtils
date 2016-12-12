@@ -3,16 +3,17 @@ package signed
 import "testing"
 
 func TestKey(t *testing.T) {
-	SetSecretKey("1234")
-	if len(secretKey) != 32 {
+	s := Signed("12345")
+	if len(s.secretKey) != 32 {
 		t.Error("SetSecretKey function error")
 	}
 }
 
 func TestSigned(t *testing.T) {
+	s := Signed("arion")
 	text := "1234567"
-	e := Encode(text)
-	d := Decode(e)
+	e := s.AESEncode(text)
+	d := s.AESDecode(e)
 	if text != d {
 		t.Error("signed error")
 	}
