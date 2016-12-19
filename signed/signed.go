@@ -10,20 +10,19 @@ import (
 	"io"
 )
 
-// Signed return the struct of signed
-func Signed(secretKey string) *ISigned {
-	return &ISigned{
-		secretKey: fmt.Sprintf("%s", sha256.Sum256([]byte(secretKey))),
-	}
-}
-
-// ISigned the interface of signed
-type ISigned struct {
+// Signed the interface of signed
+type Signed struct {
 	secretKey string
 }
 
+// SetSecretKey init secretKey
+func (s *Signed) SetSecretKey(secretKey string) *Signed {
+	s.secretKey = fmt.Sprintf("%s", sha256.Sum256([]byte(secretKey)))
+	return s
+}
+
 // AESEncode encrypt the string
-func (s *ISigned) AESEncode(t string) string {
+func (s *Signed) AESEncode(t string) string {
 	plaintext := []byte(t)
 
 	block, err := aes.NewCipher([]byte(s.secretKey))
@@ -43,7 +42,7 @@ func (s *ISigned) AESEncode(t string) string {
 }
 
 // AESDecode decode the string
-func (s *ISigned) AESDecode(t string) string {
+func (s *Signed) AESDecode(t string) string {
 	ciphertext, _ := hex.DecodeString(t)
 
 	block, err := aes.NewCipher([]byte(s.secretKey))
