@@ -7,7 +7,7 @@ import (
 )
 
 type user struct {
-	Id     bson.ObjectId `bson:"_id"`
+	ID     bson.ObjectId `bson:"_id"`
 	Name   string        `bson:"name"`
 	Passwd string        `bson:"password"`
 	Model  `bson:",omitempty"`
@@ -26,18 +26,21 @@ func (u *user) Mate() map[string]string {
 }
 
 func TestDB(t *testing.T) {
+	a := map[string]string{
+		"localhost": "mongodb://localhost",
+	}
+	Dial(a)
 	u := &user{}
-	u.Id = bson.NewObjectId()
+	u.ID = bson.NewObjectId()
 	u.Name = "arion"
 	u1 := &user{}
-	u1.Id = bson.NewObjectId()
+	u1.ID = bson.NewObjectId()
 	u1.Name = "arion2"
-	err := Session(u).Insert(u)
-	err = Session(u).Insert(u1)
+	err := C(u).Insert(u)
 	if err != nil {
 		t.Error(err)
 	}
-	err = Session(u).Remove(u)
+	err = C(u).Remove(u)
 	if err != nil {
 		t.Error(err)
 	}

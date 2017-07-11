@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"fmt"
+	"log"
 
 	"gopkg.in/mgo.v2"
 )
@@ -11,75 +12,49 @@ type model interface {
 	IndexKeys() []string
 }
 
-func index(keys []string, collection *mgo.Collection) {
-	// Index
-	_index := mgo.Index{
-		Key:      keys,
-		Unique:   true,
-		DropDups: true,
-		// Background: true,
-		// Sparse:     true,
-	}
+var sessions map[string]*mgo.Session = make(map[string]*mgo.Session, 0)
 
-	err := collection.EnsureIndex(_index)
-	if err != nil {
-		panic(err)
+// Dial ...
+func Dial(urls map[string]string) {
+	for k, v := range urls {
+		s, err := mgo.Dial(v)
+		if err != err {
+			log.Fatalf("please check out -- %s --, it's not be contected", v)
+		}
+		sessions[k] = s
 	}
 }
 
-// Session
-func Session(m model) *db {
+//Session ...
+func Session(k string) *mgo.Session {
+	if _, ok := sessions[k]; !ok {
+		panic(fmt.Sprintf("please check Dial function, %s is not in it", k))
+	}
+	return sessions[k]
+}
+
+// DB ...
+func DB(m model) *mgo.Database {
 	mate := m.Mate()
 
-	session, err := mgo.Dial(fmt.Sprintf("mongodb://%s", mate["dbAddr"]))
-
-	defer session.Close()
-	if err != nil {
-		panic(err)
+	if mate["dbAddr"] == "" || mate["dbName"] == "" || mate["cName"] == "" {
+		panic("check model mate, must include dbAddr, dbName, cName")
 	}
-	db := &db{
-		session: session.Copy(),
-		dbName:  mate["dbName"],
-		cName:   mate["cName"],
-	}
-	// db.collection = db.session.DB(m.dbName()).C(m.cName())
-	// index(m.indexKeys(), db.collection)
-	return db
-}
-
-type db struct {
-	query   *mgo.Query
-	session *mgo.Session
-	dbName  string
-	cName   string
-}
-
-func (db *db) Insert(docs ...interface{}) error {
-	defer db.session.Close()
-	return db.session.DB(db.dbName).C(db.cName).Insert(docs...)
-}
-
-func (db *db) Remove(selector interface{}) error {
-	defer db.session.Close()
-	return db.session.DB(db.dbName).C(db.cName).Remove(selector)
+	session := Session(mate["dbAddr"])
+	return session.DB(mate["dbName"])
 
 }
-func (db *db) Find(query interface{}) *db {
-	db.query = db.session.DB(db.dbName).C(db.cName).Find(query)
-	return db
+
+// C Collection alias
+func C(m model) *mgo.Collection {
+	db := DB(m)
+	mate := m.Mate()
+	return db.C(mate["cName"])
 }
 
-func (db *db) FindId(id interface{}) *db {
-	db.query = db.session.DB(db.dbName).C(db.cName).FindId(id)
-	return db
-}
-
-func (db *db) One(result interface{}) error {
-	defer db.session.Close()
-	return db.query.One(result)
-}
-
-func (db *db) Count() (int, error) {
-	defer db.session.Close()
-	return db.query.Count()
+// GridFS GridFS alias
+func GridFS(m model) *mgo.GridFS {
+	db := DB(m)
+	mate := m.Mate()
+	return db.GridFS(mate["cName"])
 }
