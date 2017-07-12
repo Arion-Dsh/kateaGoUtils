@@ -1,5 +1,7 @@
 package mongo
 
+import mgo "gopkg.in/mgo.v2"
+
 // Model ...
 type Model struct {
 }
@@ -18,8 +20,7 @@ func (m *Model) checkMate() error {
 	return nil
 }
 
-// IndexKeys ...
-func (m *Model) IndexKeys() []string {
-	var keys []string
-	return keys
+// Indexs ...
+func (m *Model) Indexs() (idexs []mgo.Index) {
+	return idexs
 }

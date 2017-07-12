@@ -9,10 +9,12 @@ import (
 
 type model interface {
 	Mate() map[string]string
-	IndexKeys() []string
+	Indexs() []mgo.Index
 }
 
 var sessions map[string]*mgo.Session = make(map[string]*mgo.Session, 0)
+
+var setIndex = make(map[string]bool, 0)
 
 // Dial ...
 func Dial(urls map[string]string) {
@@ -49,7 +51,16 @@ func DB(m model) *mgo.Database {
 func C(m model) *mgo.Collection {
 	db := DB(m)
 	mate := m.Mate()
-	return db.C(mate["cName"])
+	c := db.C(mate["cName"])
+	if !setIndex[mate["cName"]] {
+		for _, index := range m.Indexs() {
+			if err := c.EnsureIndex(index); err != nil {
+				panic(err)
+			}
+		}
+		setIndex[mate["cName"]] = true
+	}
+	return c
 }
 
 // GridFS GridFS alias
