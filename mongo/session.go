@@ -2,7 +2,6 @@ package mongo
 
 import (
 	"fmt"
-	"log"
 
 	"gopkg.in/mgo.v2"
 )
@@ -12,16 +11,16 @@ type model interface {
 	Indexs() []mgo.Index
 }
 
-var sessions map[string]*mgo.Session = make(map[string]*mgo.Session, 0)
+var sessions map[string]*mgo.Session = make(map[string]*mgo.Session)
 
-var setIndex = make(map[string]bool, 0)
+var setIndex = make(map[string]bool)
 
 // Dial ...
 func Dial(urls map[string]string) {
 	for k, v := range urls {
 		s, err := mgo.Dial(v)
-		if err != err {
-			log.Fatalf("please check out -- %s --, it's not be contected", v)
+		if err != nil {
+			panic(fmt.Sprintf("please check out -- %s --, it's not be contected", v))
 		}
 		sessions[k] = s
 	}

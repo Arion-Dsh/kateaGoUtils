@@ -1,6 +1,9 @@
 package signed
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestKey(t *testing.T) {
 	s := Signed{}
@@ -14,6 +17,7 @@ func TestSigned(t *testing.T) {
 	s := Signed{}
 	s.SetSecretKey("12345")
 	text := "1234567"
+	fmt.Print(text)
 	e := s.AESEncode(text)
 	d := s.AESDecode(e)
 	if text != d {
